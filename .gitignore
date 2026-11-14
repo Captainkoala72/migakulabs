@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# env files — keys live in Vercel, never in git
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# vercel
+.vercel/
+
+# misc
+.DS_Store
+Thumbs.db
+npm-debug.log*
+*.log
+
+# local tooling
+.claude/
