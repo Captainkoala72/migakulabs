@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 
-import { ExperimentCard } from "@/components/lab/ExperimentCard";
+import { Reveal, Words } from "@/components/fx/Reveal";
+import { ScenePreset } from "@/components/fx/ScenePreset";
+import { OpenSlot, SpecimenCard } from "@/components/lab/SpecimenCard";
 import { EXPERIMENTS } from "@/lib/experiments";
+import { SHAPE } from "@/lib/fx/scene";
 
 export const metadata: Metadata = {
   title: "The Lab",
@@ -13,29 +16,38 @@ export default function LabPage() {
   const nextCode = `EXP-${String(EXPERIMENTS.length + 1).padStart(3, "0")}`;
   return (
     <div className="wrap">
+      <ScenePreset
+        shape={SHAPE.ORBITS}
+        x={0.5}
+        y={0.12}
+        scale={1}
+        alpha={0.95}
+        spin={0.2}
+        tilt={0.45}
+        mobile={{ x: 0.3, y: 0.3, scale: 0.6, alpha: 0.4 }}
+      />
       <header className="page-head">
-        <div className="crumbs">
+        <div className="crumbs intro">
           <span className="label">Index</span>
           <span className="label">/</span>
           <span className="label strong">The lab</span>
+          <span className="pill">
+            <span className="led ok" aria-hidden="true" /> {live} live · {EXPERIMENTS.length - live} on the bench
+          </span>
         </div>
-        <h1>Experiments, live and on the bench.</h1>
-        <p className="lede">
-          {EXPERIMENTS.length} experiments logged, {live} live. Each one starts as a spec sheet, gets built and tested
-          here, and only gets a green light when it is genuinely useful.
+        <Words as="h1" className="display" text="Experiments, live and on the bench." accent={["live"]} />
+        <p className="lede intro" style={{ ["--d" as string]: "420ms" }}>
+          Each one starts as a spec sheet, gets built and tested here, and only gets a green light when it is
+          genuinely useful.
         </p>
       </header>
 
-      <div className="exp-grid" style={{ marginBottom: "var(--s-9)" }}>
+      <Reveal className="lab-grid">
         {EXPERIMENTS.map((e) => (
-          <ExperimentCard key={e.slug} experiment={e} />
+          <SpecimenCard key={e.slug} experiment={e} />
         ))}
-        <article className="exp-card slot" aria-label="Open slot">
-          <span className="label">{nextCode}</span>
-          <h3>Open slot</h3>
-          <p>Reserved for the next idea that earns a place on the bench.</p>
-        </article>
-      </div>
+        <OpenSlot code={nextCode} />
+      </Reveal>
     </div>
   );
 }

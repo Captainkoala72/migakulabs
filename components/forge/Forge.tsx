@@ -23,6 +23,11 @@ import {
   saveRun,
 } from "@/lib/forge/history";
 import type { Run, Source, StreamEvent } from "@/lib/forge/types";
+import { clamp } from "@/lib/fx/math";
+import { isReady } from "@/lib/fx/ready";
+import { SHAPE, morphTo, pulseScene, setScene } from "@/lib/fx/scene";
+import { sfx } from "@/lib/fx/sfx";
+import { onTick, scroll, view as viewport } from "@/lib/fx/ticker";
 import { useLabStatus } from "@/lib/useLabStatus";
 
 const MAX_INPUT = 30_000;
@@ -134,6 +139,43 @@ export function Forge() {
     if (hydrated) savePrefs({ model: modelKey, intensity, target, format, efforts, search });
   }, [hydrated, modelKey, intensity, target, format, efforts, search]);
 
+  /* ---------- Specimen: reflects the dial and reacts to runs ---------- */
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+  const intensityRef = useRef(intensity);
+  intensityRef.current = intensity;
+  const settledUntil = useRef(0);
+
+  useEffect(() => {
+    morphTo(SHAPE.GEM);
+    const off = onTick(() => {
+      const depth = scroll.y / Math.max(1, viewport.h);
+      const running = phaseRef.current === "running";
+      // Higher intensity = a more thoroughly cut gem. Running melts it down; finishing snaps it crisp.
+      let chaos = 0.8 - (intensityRef.current / 4) * 0.66;
+      if (running) chaos = 1;
+      else if (performance.now() < settledUntil.current) chaos = 0;
+      setScene({
+        // On phones the specimen shrinks to a small indicator beside the breadcrumbs.
+        x: viewport.mobile ? 0.72 : 0.6,
+        y: (viewport.mobile ? 0.79 : 0.6) + depth * (viewport.mobile ? 2 : 1.1),
+        scale: viewport.mobile ? 0.15 : 0.4,
+        alpha: (isReady() ? 1 : 0) * (1 - clamp(depth / (viewport.mobile ? 0.25 : 0.8))),
+        chaos,
+        energy: running ? 1 : 0,
+        spin: 0.2,
+        tilt: 0.3,
+        roll: 0,
+        face: 0,
+        level: 1,
+      });
+    });
+    return () => {
+      off();
+      setScene({ energy: 0 });
+    };
+  }, []);
+
   /* ---------- Options ---------- */
   const modelOptions: PickerOption[] = useMemo(
     () =>
@@ -226,6 +268,7 @@ export function Forge() {
     setMeta(runMeta);
 
     const started = performance.now();
+    sfx.start();
     setElapsed(0);
     const timer = window.setInterval(() => setElapsed(performance.now() - started), 100);
     const collected: Source[] = [];
@@ -275,6 +318,9 @@ export function Forge() {
       setElapsed(elapsedMs);
       setPhase("done");
       setStatusLine("");
+      settledUntil.current = performance.now() + 4500;
+      pulseScene(1);
+      sfx.done();
       const record: Run = {
         id: crypto.randomUUID(),
         createdAt: Date.now(),
@@ -299,6 +345,7 @@ export function Forge() {
       } else {
         setPhase("error");
         setError(e?.message ?? "Something went wrong. Please retry.");
+        sfx.error();
       }
     } finally {
       window.clearInterval(timer);
@@ -383,7 +430,7 @@ export function Forge() {
       </button>
     ) : (
       <button type="button" className={`btn btn-primary forge-run ${extraClass}`} onClick={run} disabled={runDisabled}>
-        Forge prompt <span className="kbd">Ctrl ↵</span>
+        <span>Forge prompt</span> <span className="kbd">Ctrl ↵</span>
       </button>
     );
 
@@ -488,7 +535,13 @@ export function Forge() {
           </div>
           <div className="deck-body">
             <div className="control">
-              <IntensityDial value={intensity} onChange={setIntensity} />
+              <IntensityDial
+                value={intensity}
+                onChange={(value) => {
+                  if (value !== intensity) sfx.detent(value);
+                  setIntensity(value);
+                }}
+              />
             </div>
 
             <Picker
@@ -607,6 +660,7 @@ export function Forge() {
             id="raw"
             ref={inputRef}
             className="raw"
+            data-lenis-prevent
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onPaste={(e) => {
@@ -683,7 +737,7 @@ export function Forge() {
             >
               <span className="label strong">Instructions for the AI</span>
               <span className="label">{instructions.trim() ? "Set" : "Optional"}</span>
-              <span className="caret" aria-hidden="true">
+              <span className="plus" aria-hidden="true">
                 {directivesOpen ? "−" : "+"}
               </span>
             </button>
@@ -694,6 +748,7 @@ export function Forge() {
                   onChange={(e) => setInstructions(e.target.value)}
                   placeholder={"Steer the edit without changing your prompt. e.g. Keep my casual voice · Don't add a persona · Make it work for Midjourney"}
                   rows={3}
+                  data-lenis-prevent
                   maxLength={8000}
                   aria-label="Instructions for the AI"
                 />

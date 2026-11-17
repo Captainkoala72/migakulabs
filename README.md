@@ -2,12 +2,26 @@
 
 An independent lab for practical AI tools. Every tool is an **experiment** with a code, a spec sheet and a status light. The first live instrument is **Prompt Forge (EXP-001)**.
 
-- **`/`** — lab index: hero with a live Polish ↔ Optimize specimen, Forge pipeline, experiments, method, lab log
+- **`/`** — a scroll-driven walk through the lab: hero with a drag-to-polish specimen, the Forge demonstrated in one pinned scroll, model roster, feature grid, horizontal experiment gallery, method, lab log, finale
 - **`/forge`** — Prompt Forge workbench
 - **`/lab`** — every experiment; **`/lab/[slug]`** — spec sheets for tools still on the bench
 - **`/about`** — the lab, the operator, the colophon
 
-Built with Next.js 16 (App Router), React 19 and TypeScript. No UI framework: the design system is hand-written CSS in `app/globals.css` and `app/forge/forge.css`.
+Built with Next.js 16 (App Router), React 19 and TypeScript. No UI or animation framework: the design system is hand-written CSS (`app/globals.css`, `app/home.css`, `app/forge/forge.css`) and the motion is custom code. The only runtime dependency beyond Next/React is [Lenis](https://github.com/darkroomengineering/lenis) for inertial scrolling.
+
+## How the motion works
+
+| Piece | Where | What it does |
+|---|---|---|
+| The specimen | `components/fx/Scene.tsx`, `lib/fx/shapes.ts` | One fixed WebGL canvas behind every page. ~26,000 points (11,000 on phones) are morphed between five shapes — cut gem, model orbits, rolling lattice, gauge, the wordmark — entirely in a hand-written vertex shader. No 3D library. |
+| Scene state | `lib/fx/scene.ts` | A tiny shared store. Pages write a target pose (shape, position, roughness, energy); the renderer eases toward it. |
+| Scroll choreography | `components/home/HomeScene.tsx` | Each homepage section has a pose; the specimen morphs between poses in the gaps. |
+| Frame loop | `lib/fx/ticker.ts` | A single `requestAnimationFrame` loop shared by smooth scroll, the canvas, the cursor and every scroll-linked animation. |
+| Pinned sections | `Pin` in `components/fx/Motion.tsx` | `position: sticky` plus a `--p` CSS variable (0→1) written each frame, so most scroll animation is plain CSS `calc()`. |
+| Variable type | `components/home/Hero.tsx` | Headline letters animate along Archivo's weight and width axes: they wobble while the specimen is raw and swell toward the cursor. |
+| Extras | `components/fx/*` | Boot sequence, shutter route transitions, cursor ring, magnetic buttons, tilt cards, velocity marquee, text scramble, HUD, synthesized UI sounds (off by default). |
+
+Everything respects `prefers-reduced-motion`: smooth scroll, the boot sequence, the cursor and looping animation are disabled and content is shown immediately.
 
 ## Prompt Forge
 
@@ -75,10 +89,13 @@ app/
   api/forge/route.ts     Validates input, meters usage, streams SSE
   api/status/route.ts    Which models are online + caller's allowance (no secrets)
 components/
+  fx/                    Scene (WebGL), SmoothScroll, Cursor, Preloader, Transition, Hud, Reveal, Scramble, Motion
   forge/                 Forge, IntensityDial, Picker, OutputPanel, RunLog, controls
-  home/SpecimenDemo.tsx  Static dial demo (never calls an API)
+  home/                  Hero, Process, Instruments, Deck, LabRail, Method, LogTerminal, Finale, HomeScene
+  lab/SpecimenCard.tsx   Experiment cards with small living illustrations
   site/                  Nav, Footer, StatusChip, BrandMark
 lib/
+  fx/                    ticker, scene store, shapes, sfx, math, ready
   site.ts                Name, tagline, operator bio, links
   experiments.ts         The experiment registry
   log.ts                 Lab log entries
@@ -94,7 +111,7 @@ lib/
 
 **A new model** — add it to `MODELS` in `lib/forge/catalog.ts`. If its provider is new, add an adapter to `PROVIDER_SERVERS` in `lib/server/providers.ts` (OpenAI-compatible providers only need a `body()` and headers).
 
-**A new tool (music maker, games, …)** — add an entry to `lib/experiments.ts` (it immediately appears on the home page, `/lab` and gets a spec sheet). When it ships, build its route (e.g. `app/music/page.tsx` plus any `app/api/music/route.ts`), set `status: "live"` and `href: "/music"`, and add a line to `lib/log.ts`. `PIXAZO_API_KEY` is already reserved in `.env.example` for EXP-002.
+**A new tool (music maker, games, …)** — add an entry to `lib/experiments.ts` (it immediately appears in the home gallery, on `/lab`, and gets a spec sheet). Give it a small illustration in `components/lab/SpecimenCard.tsx` and, on its page, a `<ScenePreset>` to pose the specimen. When it ships, build its route (e.g. `app/music/page.tsx` plus any `app/api/music/route.ts`), set `status: "live"` and `href: "/music"`, and add a line to `lib/log.ts`. `PIXAZO_API_KEY` is already reserved in `.env.example` for EXP-002.
 
 **Copy** — the operator bio and links are in `lib/site.ts`.
 

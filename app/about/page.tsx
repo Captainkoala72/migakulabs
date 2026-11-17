@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { Reveal, Words } from "@/components/fx/Reveal";
+import { ScenePreset } from "@/components/fx/ScenePreset";
+import { TLink } from "@/components/fx/Transition";
 import { MODELS, PROVIDERS } from "@/lib/forge/catalog";
+import { SHAPE } from "@/lib/fx/scene";
 import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -12,19 +15,34 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="wrap">
+      <ScenePreset
+        shape={SHAPE.RING}
+        x={0.5}
+        y={0.08}
+        scale={0.95}
+        alpha={0.9}
+        spin={0}
+        tilt={0.5}
+        roll={0.14}
+        face={1}
+        level={0}
+        mobile={{ x: 0.3, y: 0.3, scale: 0.55, alpha: 0.35 }}
+      />
       <header className="page-head">
-        <div className="crumbs">
+        <div className="crumbs intro">
           <span className="label">Index</span>
           <span className="label">/</span>
           <span className="label strong">About</span>
         </div>
-        <h1>A small lab with a simple rule: ship what you use.</h1>
-        <p className="lede">{SITE.description}</p>
+        <Words as="h1" className="display" text="Ship what you use." accent={["use"]} />
+        <p className="lede intro" style={{ ["--d" as string]: "420ms" }}>
+          {SITE.description}
+        </p>
       </header>
 
       <div className="sheet">
         <div className="sheet-main">
-          <section>
+          <Reveal as="section">
             <h2>What the lab is</h2>
             <div className="prose">
               <p>
@@ -37,24 +55,24 @@ export default function AboutPage() {
                 helpers.
               </p>
             </div>
-          </section>
+          </Reveal>
 
-          <section>
+          <Reveal as="section">
             <h2>The operator</h2>
             <div className="prose">
               <p>{SITE.operator.bio}</p>
             </div>
-            <div style={{ display: "flex", gap: "var(--s-3)", flexWrap: "wrap", marginTop: "var(--s-5)" }}>
+            <div className="row-actions">
               <a href={SITE.links.github} className="btn btn-ghost" target="_blank" rel="noreferrer">
                 GitHub ↗
               </a>
-              <Link href="/forge" className="btn btn-primary">
+              <TLink href="/forge" className="btn btn-primary">
                 Try Prompt Forge <span className="arrow">→</span>
-              </Link>
+              </TLink>
             </div>
-          </section>
+          </Reveal>
 
-          <section>
+          <Reveal as="section">
             <h2>How it is built</h2>
             <ol className="check-list">
               <li>
@@ -76,12 +94,19 @@ export default function AboutPage() {
                 <span className="n">04</span>
                 <span>Your run history stays in your browser. The lab doesn&apos;t keep a copy of your prompts.</span>
               </li>
+              <li>
+                <span className="n">05</span>
+                <span>
+                  The specimen behind every page is 26,000 particles drawn with hand-written WebGL shaders. No 3D
+                  library, no video, no images.
+                </span>
+              </li>
             </ol>
-          </section>
+          </Reveal>
         </div>
 
         <aside className="sheet-side">
-          <div className="panel ticks">
+          <Reveal className="panel ticks" delay={150}>
             <div className="panel-head">
               <span className="label strong">Colophon</span>
             </div>
@@ -96,11 +121,11 @@ export default function AboutPage() {
               </div>
               <div>
                 <dt>Stack</dt>
-                <dd>Next.js, TypeScript, server-side streaming</dd>
+                <dd>Next.js, TypeScript, raw WebGL, Lenis</dd>
               </div>
               <div>
                 <dt>Type</dt>
-                <dd>Archivo &amp; IBM Plex Mono</dd>
+                <dd>Archivo (variable width) &amp; IBM Plex Mono</dd>
               </div>
               <div>
                 <dt>Signal</dt>
@@ -112,13 +137,13 @@ export default function AboutPage() {
               <div>
                 <dt>Source</dt>
                 <dd>
-                  <a href={SITE.links.source} target="_blank" rel="noreferrer">
+                  <a href={SITE.links.source} target="_blank" rel="noreferrer" className="link-line">
                     GitHub ↗
                   </a>
                 </dd>
               </div>
             </dl>
-          </div>
+          </Reveal>
         </aside>
       </div>
     </div>

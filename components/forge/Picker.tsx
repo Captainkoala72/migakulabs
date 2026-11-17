@@ -146,6 +146,7 @@ export function Picker({ label, value, options, onChange, renderValue, columns =
           ref={listRef}
           className={`picker-pop cols-${columns}`}
           role="listbox"
+          data-lenis-prevent
           tabIndex={-1}
           aria-labelledby={`${id}-label`}
           aria-activedescendant={`${id}-opt-${active}`}

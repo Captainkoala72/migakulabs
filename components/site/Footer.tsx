@@ -1,6 +1,8 @@
-import Link from "next/link";
+"use client";
 
+import { TLink } from "@/components/fx/Transition";
 import { EXPERIMENTS } from "@/lib/experiments";
+import { scrollToTarget } from "@/lib/fx/ticker";
 import { SITE } from "@/lib/site";
 
 export function Footer() {
@@ -15,26 +17,24 @@ export function Footer() {
           <div className="footer-col">
             <span className="label">Instruments</span>
             {EXPERIMENTS.map((e) => (
-              <Link key={e.slug} href={e.href}>
+              <TLink key={e.slug} href={e.href} className="link-line">
                 {e.name}
-              </Link>
+              </TLink>
             ))}
           </div>
           <div className="footer-col">
             <span className="label">Lab</span>
-            <Link href="/lab">All experiments</Link>
-            <Link href="/about">About the lab</Link>
-            <a href={SITE.links.github} target="_blank" rel="noreferrer">
+            <TLink href="/lab" className="link-line">
+              All experiments
+            </TLink>
+            <TLink href="/about" className="link-line">
+              About the lab
+            </TLink>
+            <a href={SITE.links.github} target="_blank" rel="noreferrer" className="link-line">
               GitHub ↗
             </a>
           </div>
         </div>
-
-        <div className="footer-word" aria-hidden="true">
-          MiGaKu Labs
-        </div>
-      </div>
-      <div className="wrap">
         <div className="footer-base">
           <span className="label">
             © {SITE.founded} {SITE.name}
@@ -45,7 +45,9 @@ export function Footer() {
             </span>
             <span className="label">migaku — to polish, to refine</span>
           </span>
-          <span className="label">Built with Next.js · Deployed on Vercel</span>
+          <button type="button" className="label footer-top" onClick={() => scrollToTarget(0)}>
+            Back to top ↑
+          </button>
         </div>
       </div>
     </footer>

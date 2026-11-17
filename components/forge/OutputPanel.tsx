@@ -62,7 +62,7 @@ export function OutputPanel(props: Props) {
   const hasOutput = Boolean(output);
 
   return (
-    <section className="panel ticks bench-panel bench-output" aria-labelledby="out-title">
+    <section className="panel ticks bench-panel bench-output" aria-labelledby="out-title" data-phase={phase}>
       <div className="panel-head">
         <span className="label strong" id="out-title">
           <span className="label signal">03</span> Output
@@ -93,7 +93,7 @@ export function OutputPanel(props: Props) {
         </div>
       </div>
 
-      <div className="out-body" aria-live="polite" aria-busy={phase === "running"}>
+      <div className="out-body" aria-live="polite" aria-busy={phase === "running"} data-lenis-prevent>
         {phase === "error" && (
           <div className="out-error" role="alert">
             <span className="label" style={{ color: "var(--err)" }}>

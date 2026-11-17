@@ -41,6 +41,7 @@ export function RunLog({ open, runs, onClose, onRestore, onDelete, onClear }: Pr
     <dialog
       ref={ref}
       className="drawer"
+      data-lenis-prevent
       aria-labelledby="runlog-title"
       onClose={onClose}
       onClick={(e) => {

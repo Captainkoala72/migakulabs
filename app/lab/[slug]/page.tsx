@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { Reveal, Words } from "@/components/fx/Reveal";
+import { ScenePreset } from "@/components/fx/ScenePreset";
+import { TLink } from "@/components/fx/Transition";
 import { EXPERIMENTS, STATUS_LABEL, getExperiment } from "@/lib/experiments";
+import { SHAPE } from "@/lib/fx/scene";
 
 export function generateStaticParams() {
   return EXPERIMENTS.map((e) => ({ slug: e.slug }));
@@ -24,11 +27,22 @@ export default async function ExperimentPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="wrap">
+      {/* Unreleased instruments show a specimen that is still rough. */}
+      <ScenePreset
+        shape={SHAPE.GEM}
+        x={0.52}
+        y={0.1}
+        scale={0.95}
+        alpha={0.95}
+        chaos={experiment.status === "next" ? 0.55 : 0.9}
+        spin={0.16}
+        mobile={{ x: 0.35, y: 0.32, scale: 0.6, alpha: 0.45 }}
+      />
       <header className="page-head">
-        <div className="crumbs">
-          <Link href="/lab" className="label">
+        <div className="crumbs intro">
+          <TLink href="/lab" className="label link-line">
             The lab
-          </Link>
+          </TLink>
           <span className="label">/</span>
           <span className="label strong">{experiment.code}</span>
           <span className="pill">
@@ -36,14 +50,16 @@ export default async function ExperimentPage({ params }: { params: Promise<{ slu
             {STATUS_LABEL[experiment.status]}
           </span>
         </div>
-        <h1>{experiment.name}</h1>
-        <p className="lede">{experiment.summary}</p>
+        <Words as="h1" className="display" text={experiment.name} />
+        <p className="lede intro" style={{ ["--d" as string]: "420ms" }}>
+          {experiment.summary}
+        </p>
       </header>
 
       <div className="sheet">
         <div className="sheet-main">
           {experiment.roadmap && (
-            <section>
+            <Reveal as="section">
               <h2>Planned capabilities</h2>
               <ol className="check-list">
                 {experiment.roadmap.map((item, i) => (
@@ -53,29 +69,30 @@ export default async function ExperimentPage({ params }: { params: Promise<{ slu
                   </li>
                 ))}
               </ol>
-            </section>
+            </Reveal>
           )}
-          <section>
+          <Reveal as="section">
             <h2>Status</h2>
             <div className="prose">
               <p>
-                This instrument is <strong>{STATUS_LABEL[experiment.status].toLowerCase()}</strong>. It will appear in
-                the lab log the day it goes live. In the meantime, Prompt Forge is open and ready.
+                This instrument is <strong>{STATUS_LABEL[experiment.status].toLowerCase()}</strong>. The specimen on
+                this page is still rough on purpose: it sharpens as the build gets closer to release. In the
+                meantime, Prompt Forge is open and ready.
               </p>
             </div>
-            <div style={{ display: "flex", gap: "var(--s-3)", flexWrap: "wrap", marginTop: "var(--s-5)" }}>
-              <Link href="/forge" className="btn btn-primary">
+            <div className="row-actions">
+              <TLink href="/forge" className="btn btn-primary">
                 Open Prompt Forge <span className="arrow">→</span>
-              </Link>
-              <Link href="/lab" className="btn btn-ghost">
+              </TLink>
+              <TLink href="/lab" className="btn btn-ghost">
                 All experiments
-              </Link>
+              </TLink>
             </div>
-          </section>
+          </Reveal>
         </div>
 
         <aside className="sheet-side">
-          <div className="panel ticks">
+          <Reveal className="panel ticks" delay={150}>
             <div className="panel-head">
               <span className="label strong">Spec sheet · {experiment.code}</span>
             </div>
@@ -91,7 +108,7 @@ export default async function ExperimentPage({ params }: { params: Promise<{ slu
                 <dd>{experiment.tags.join(" · ")}</dd>
               </div>
             </dl>
-          </div>
+          </Reveal>
         </aside>
       </div>
     </div>
